@@ -1,0 +1,23 @@
+ext {
+    //Android config
+    config = [
+            applicationId: 'com.dcc.base',
+            compileSdkVersion: 27,
+            buildToolsVersion: '28.0.3',
+            minSdkVersion    : 18,
+            targetSdkVersion : 27
+    ]
+
+    //Android dependencies
+    dependencies = [
+            constraintLayoutVersion : '1.1.2',
+            nordicsemiDFUVersion : '1.7.0',
+            'ibaseVersion': '1.0.1'
+    ]
+
+    // APP config 全局配置
+    app = [
+            versionCode: 1,
+            versionName: '1.0.0'
+    ]
+}

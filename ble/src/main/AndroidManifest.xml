@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.paiai.mble">
+    <!-- 和经典蓝牙一样，应用使用蓝牙，需要声明BLUETOOTH权限，如果需要扫描设备或者操作蓝牙设置，则还需要BLUETOOTH_ADMIN权限 -->
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <!-- 6.0以上扫描蓝牙需要位置权限 -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+    <!--
+         除了蓝牙权限外，如果需要BLE feature则还需要声明uses-feature：
+        <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
+
+        按时required为true时，则应用只能在支持BLE的Android设备上安装运行；required为false时，Android设备均可正常安装运行，需要在代码运行时判断设备是否支持BLE feature：
+
+        // Use this check to determine whether BLE is supported on the device. Then
+        // you can selectively disable BLE-related features.
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).select();
+            finish();
+        }
+        required为false，才可以在代码中检测ble功能是否可用
+    -->
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false"/>
+
+    <application
+        android:allowBackup="true"
+        android:supportsRtl="true">
+        <!-- 蓝牙守护服务 -->
+        <service
+            android:name="com.paiai.mble.service.BLEService"
+            android:enabled="true"/>
+        <!-- dfu升级服务 -->
+        <service
+            android:name="com.paiai.mble.dfu.DfuService"
+            android:enabled="true"/>
+    </application>
+
+</manifest>

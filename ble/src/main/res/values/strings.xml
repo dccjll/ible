@@ -1,0 +1,50 @@
+<resources>
+    <!-- 开启定位权限提示 start -->
+    <string name="mble_scan_need_location_feature">蓝牙扫描需要位置功能，需要前往设置中心打开定位功能</string>
+    <!-- 开启定位权限提示 end -->
+
+    <!-- 扫描设备界面标签提示信息 start -->
+    <string name="mble_scan_device_nearby">扫描附近的设备</string>
+    <!-- 扫描设备界面标签提示信息 end -->
+
+    <!-- 定位权限与定位功能错误码信息 start -->
+    <string name="mble_location_feature_denied">定位功能被阻止</string>
+    <string name="mble_cancel_open_location_setting">取消打开定位设置界面</string>
+    <!-- 定位权限与定位功能错误码信息 end -->
+
+    <!-- 解释权限的信息 start -->
+    <string name="base_explain_need_calendar_permission">需要日历权限</string>
+    <string name="base_explain_need_camera_permission">需要拍照权限</string>
+    <string name="base_explain_need_contacts_permission">从通讯录中读取联系人信息需要访问通讯录权限</string>
+    <string name="base_explain_need_location_permission">需要定位权限</string>
+    <string name="base_explain_need_record_audio_permission">需要录音权限</string>
+    <string name="base_explain_need_phone_permission">需要手机访问权限</string>
+    <string name="base_explain_need_sensors_permission">需要传感器权限</string>
+    <string name="base_explain_need_sms_permission">需要短信权限</string>
+    <string name="base_explain_need_sdcard_permission">需要读写sd卡权限</string>
+    <!-- 解释权限的信息  end -->
+
+    <!-- 解释打开权限设置界面的信息 start -->
+    <string name="base_explain_open_app_calendar_permission_settings">需要打开app权限设置界面，勾选日历权限</string>
+    <string name="base_explain_open_app_camera_permission_settings">需要打开app权限设置界面，勾选拍照权限</string>
+    <string name="base_explain_open_app_contacts_permission_settings">需要打开app权限设置界面，勾选通讯录权限</string>
+    <string name="base_explain_open_app_location_permission_settings">需要打开app权限设置界面，勾选定位权限</string>
+    <string name="base_explain_open_app_record_audio_permission_settings">需要打开app权限设置界面，勾选录音权限</string>
+    <string name="base_explain_open_app_phone_permission_settings">需要打开app权限设置界面，勾选电话权限</string>
+    <string name="base_explain_open_app_sensors_permission_settings">需要打开app权限设置界面，勾选传感器权限</string>
+    <string name="base_explain_open_app_sms_permission_settings">需要打开app权限设置界面，勾选短信权限</string>
+    <string name="base_explain_open_app_sdcard_permission_settings">需要打开app权限设置界面，勾选sd卡访问权限</string>
+    <!-- 解释打开权限设置界面的信息  end -->
+
+    <!-- 权限被阻止 start -->
+    <string name="base_calendar_permission_denied">日历权限被阻止</string>
+    <string name="base_camera_permission_denied">拍照权限被阻止</string>
+    <string name="base_contacts_permission_denied">通讯录权限被阻止</string>
+    <string name="base_location_permission_denied">定位权限被阻止</string>
+    <string name="base_record_audio_permission_denied">录音权限被阻止</string>
+    <string name="base_phone_permission_denied">打电话权限被阻止</string>
+    <string name="base_sensors_permission_denied">传感器权限被阻止</string>
+    <string name="base_sms_permission_denied">短信权限被阻止</string>
+    <string name="base_storage_permission_denied">存储权限被阻止</string>
+    <!-- 权限被阻止 end -->
+</resources>

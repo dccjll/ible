@@ -1,0 +1,38 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+group='com.github.dccjll'
+
+android {
+    compileSdkVersion config.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion config.minSdkVersion
+        targetSdkVersion config.targetSdkVersion
+        versionCode config.versionCode
+        versionName config.versionName
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+repositories {
+    //添加一个本地仓库，并把libs目录作为仓库的地址
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+dependencies {
+    compile "no.nordicsemi.android:dfu:$rootProject.ext.dependencies.nordicsemiDFUVersion"
+    compile "com.github.dccjll:ibase:$rootProject.ext.dependencies.ibaseVersion"
+}
