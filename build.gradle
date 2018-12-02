@@ -26,10 +26,6 @@ allprojects {
         maven {
             url 'https://jitpack.io'
         }
-        // 个推SDK库的Maven仓库
-        maven {
-            url "http://mvn.gt.igexin.com/nexus/content/repositories/releases/"
-        }
     }
 }
 

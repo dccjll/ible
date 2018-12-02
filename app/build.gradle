@@ -9,13 +9,6 @@ android {
         versionCode config.versionCode
         versionName config.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
-        manifestPlaceholders = [
-                //个推证书配置
-                GETUI_APP_ID    : "",//个推appid
-                GETUI_APP_KEY   : "",//个推appkey
-                GETUI_APP_SECRET: "",//个推appsecret
-        ]
     }
     buildTypes {
         release {
