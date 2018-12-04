@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -89,10 +88,6 @@ public class BLEConnect {
         BluetoothAdapter bluetoothAdapter = bleManage.getBluetoothAdapter();
         if(bluetoothAdapter == null){
             bleManage.handleError(-10002);
-            return;
-        }
-        if (!AppUtils.Companion.getApp().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            bleManage.handleError(-10050);
             return;
         }
         if (!bluetoothAdapter.isEnabled()) {

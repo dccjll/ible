@@ -2,7 +2,6 @@ package com.paiai.mble.core;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.pm.PackageManager;
 import android.os.Handler;
 
 import com.dcc.ibase.log.LogManager;
@@ -122,10 +121,6 @@ public class BLEScan {
         BluetoothAdapter bluetoothAdapter = bleManage.getBluetoothAdapter();
         if(bluetoothAdapter == null){
             bleManage.handleError(-10002);
-            return;
-        }
-        if (!AppUtils.Companion.getApp().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            bleManage.handleError(-10050);
             return;
         }
         if (!bluetoothAdapter.isEnabled()) {

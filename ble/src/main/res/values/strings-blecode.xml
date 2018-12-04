@@ -14,19 +14,13 @@
         <item>-10001#无法获取蓝牙管理服务|ERROR</item>
         <item>-10002#无法获取蓝牙适配器|ERROR</item>
         <item>-10003#请检查设备mac地址或名称|INFO</item>
-        <item>-10004#无法获取传感器管理器|ERROR</item>
-        <item>-10005#无法获取重力传感器|ERROR</item>
-        <item>-10006#网络异常|INFO</item>
         <item>-10007#设备已断开连接|INFO</item>
         <item>-10008#收到蓝牙底层协议栈异常消息|ERROR</item>
         <item>-10009#未发现设备，请确保设备蓝牙开启并在一定范围内|INFO</item>
         <item>-10010#进入固件更新的mac地址转换失败|ERROR</item>
         <item>-10011#文件格式检测失败|ERROR</item>
         <item>-10012#启动扫描异常|ERROR</item>
-        <item>-10013#扫描蓝牙设备需要位置权限|INFO</item>
-        <item>-10014#位置权限被禁止|INFO</item>
         <item>-10015#蓝牙未开启，请前往设置中心打开蓝牙|INFO</item>
-        <item>-10016#当前操作需要定位权限与定位功能，请允许该应用访问手机定位权限并打开手机的定位功能后重试|INFO</item>
         <item>-10017#正在扫描,请等待|INFO</item>
         <item>-10018#蓝牙连接失败|INFO</item>
         <item>-10019#蓝牙设备(或蓝牙适配器或目标设备mac地址)校验失败|ERROR</item>
@@ -53,14 +47,9 @@
         <item>-10040#蓝牙超时|INFO</item>
         <item>-10041#已超时断开|ERROR</item>
         <item>-10042#通讯uuid组校验失败|ERROR</item>
-        <item>-10043#扫描异常|INFO</item>
-        <item>-10044#固件更新失败|INFO</item>
         <item>-10045#请检查固件地址|ERROR</item>
-        <item>-10046#下载固件失败|ERROR</item>
         <item>-10047#固件地址指向一个内部地址，但是该地址不存在任何文件|ERROR</item>
         <item>-10048#暂不支持网络地址的固件升级|ERROR</item>
-        <item>-10049#蓝牙未开启|INFO</item>
-        <item>-10050#请打开手机定位功能|INFO</item>
         <item>-10051#连接异常|INFO</item>
     </string-array>
 </resources>
