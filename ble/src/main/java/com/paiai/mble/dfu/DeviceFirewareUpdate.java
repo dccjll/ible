@@ -405,6 +405,8 @@ public class DeviceFirewareUpdate {
 
         final DfuServiceInitiator starter = new DfuServiceInitiator(device.getAddress()).setDeviceName(device.getName()).setKeepBond(false);
         starter.setZip(null, firewareAddress);
+        starter.setDisableNotification(true);
+        starter.setForeground(false);
         starter.start(AppUtils.Companion.getApp(), DfuService.class);
         LogManager.Companion.i(TAG, "starter started!");
 
