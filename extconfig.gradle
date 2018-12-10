@@ -12,12 +12,12 @@ ext {
     dependencies = [
             constraintLayoutVersion : '1.1.2',
             nordicsemiDFUVersion : '1.7.0',
-            ibaseVersion: '1.0.3'
+            ibaseVersion: '1.0.4'
     ]
 
     // APP config 全局配置
     app = [
-            versionCode: 3,
-            versionName: '1.0.4'
+            versionCode: 6,
+            versionName: '1.0.5'
     ]
 }
