@@ -10,7 +10,7 @@ import com.dcc.ibase.utils.AppUtils;
 
 public class BLEMsgCode extends BaseMsgCode {
 
-    static {
+    public static void init() {
         String[] bleCodeArr = AppUtils.Companion.getApp().getResources().getStringArray(R.array.mble_bleMsgCode);
         try {
             for (String bleCode: bleCodeArr) {

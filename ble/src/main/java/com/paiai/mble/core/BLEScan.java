@@ -2,6 +2,7 @@ package com.paiai.mble.core;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.pm.PackageManager;
 import android.os.Handler;
 
 import com.dcc.ibase.log.LogManager;
@@ -32,17 +33,25 @@ public class BLEScan {
     private Boolean isScaning = false;
     private Handler scanHandler;
     private Runnable scanRunnable;
+    private boolean multiScan = true;
     private boolean foundDevice = false;//是否已找到设备
+    private boolean enableBleLog = false;
     private final BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             if (!bleManage.getRunning()) {
-                LogManager.Companion.i(TAG, "扫描到设备时任务已停止");
+                if (enableBleLog) {
+                    LogManager.Companion.i(TAG, "扫描到设备时任务已停止");
+                }
                 return;
             }
-            LogManager.Companion.i(TAG, "扫描到设备,deviceMac=" + device);
+            if (enableBleLog) {
+                LogManager.Companion.i(TAG, "扫描到设备,deviceMac=" + device + ",deviceName=" + device.getName());
+            }
             if(foundDevice){
-                LogManager.Companion.i(TAG, "已找到设备，略过停止扫描间隙扫描到的设备");
+                if (enableBleLog) {
+                    LogManager.Companion.i(TAG, "已找到设备，略过停止扫描间隙扫描到的设备");
+                }
                 return;
             }
             boolean containsDevice = false;
@@ -86,27 +95,18 @@ public class BLEScan {
                 if (bleManage.getBleFilter().matcher(device, rssi, scanRecord)) {
                     onFoundDevice(true, device, rssi, scanRecord);
                 }
-                /*if(!TextUtils.isEmpty(bleManage.getTargetDeviceAddress())){
-                    if(device.getAddress().equalsIgnoreCase(bleManage.getTargetDeviceAddress())){
-                        onFoundDevice(device, rssi, scanRecord);
-                    }
-                }else if(bleManage.getTargetDeviceAddressList() != null && bleManage.getTargetDeviceAddressList().size() > 0){
-                    if(bleManage.getTargetDeviceAddressList().contains(device.getAddress())){
-                        onFoundDevice(device, rssi, scanRecord);
-                    }
-                }else if(!TextUtils.isEmpty(bleManage.getTargetDeviceName())){
-                    if(device.getName() != null && device.getName().equalsIgnoreCase(bleManage.getTargetDeviceName())){
-                        onFoundDevice(device, rssi, scanRecord);
-                    }
-                }else{
-                    onFoundDevice(device, rssi, scanRecord);
-                }*/
             }
         }
     };
 
     public BLEScan(BLEManage bleManage) {
         this.bleManage = bleManage;
+        enableBleLog = bleManage.getEnableLogFlag();
+    }
+
+    public BLEScan setMultiScan(boolean multiScan) {
+        this.multiScan = multiScan;
+        return this;
     }
 
     /**
@@ -114,13 +114,21 @@ public class BLEScan {
      */
     public void startScan(){
         if (!bleManage.getRunning()) {
-            LogManager.Companion.i(TAG, "准备开始扫描时任务已停止");
+            if (enableBleLog) {
+                LogManager.Companion.i(TAG, "准备开始扫描时任务已停止");
+            }
             return;
         }
-        LogManager.Companion.i(TAG, "准备开始扫描");
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "准备开始扫描");
+        }
         BluetoothAdapter bluetoothAdapter = bleManage.getBluetoothAdapter();
         if(bluetoothAdapter == null){
             bleManage.handleError(-10002);
+            return;
+        }
+        if (!AppUtils.Companion.getApp().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            bleManage.handleError(-10050);
             return;
         }
         if (!bluetoothAdapter.isEnabled()) {
@@ -129,11 +137,15 @@ public class BLEScan {
         }
         if (++currentScanCount > BLEConfig.MAX_SCAN_COUNT) {
             if (bleManage.getBleFilter() == null) {//执行是单纯的扫描任务
-                LogManager.Companion.i(TAG, "扫描完成");
+                if (enableBleLog) {
+                    LogManager.Companion.i(TAG, "扫描完成");
+                }
                 bleManage.getBleResponseManager().onScanFinish(foundDeviceList);
                 return;
             }
-            LogManager.Companion.i(TAG, "扫描失败,已尝试最大扫描次数");
+            if (enableBleLog) {
+                LogManager.Companion.i(TAG, "扫描失败,已尝试最大扫描次数");
+            }
             bleManage.handleError(-10009);
             return;
         }
@@ -142,12 +154,18 @@ public class BLEScan {
             scanRunnable = new Runnable() {
                 @Override
                 public void run() {
-                    scanControl(false);
+                    stopScan();
                     if (!bleManage.getRunning()) {
-                        LogManager.Companion.i(TAG, "准备重新扫描时任务已停止");
+                        if (enableBleLog) {
+                            LogManager.Companion.i(TAG, "准备重新扫描时任务已停止");
+                        }
                         return;
                     }
-                    startScan();//重新开始扫描
+                    if (multiScan) {
+                        startScan();//重新开始扫描
+                    } else {
+                        bleManage.getBleResponseManager().onScanFinish(foundDeviceList);
+                    }
                 }
             };
             scanHandler.postDelayed(scanRunnable, bleManage.getTimeoutScanBLE());
@@ -155,10 +173,14 @@ public class BLEScan {
         foundDeviceList.clear();
         BLEManage.disconnect(BLEGattCallback.lastBluetoothGatt);
         if (!bleManage.getRunning()) {
-            LogManager.Companion.i(TAG, "准备扫描时任务已停止");
+            if (enableBleLog) {
+                LogManager.Companion.i(TAG, "准备扫描时任务已停止");
+            }
             return;
         }
-        LogManager.Companion.i(TAG, "第" + currentScanCount + "次开始扫描");
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "第" + currentScanCount + "次开始扫描");
+        }
         try {
             scanControl(true);
         } catch (Exception e) {
@@ -199,10 +221,12 @@ public class BLEScan {
      * 发现设备
      */
     private void onFoundDevice(boolean existFilter, BluetoothDevice device, int rssi, byte[] scanRecord) {
-        LogManager.Companion.i(TAG, "已找到设备,mac=" + device);
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "已找到设备,mac=" + device);
+        }
         if (existFilter) {
             foundDevice = true;
-            scanControl(false);
+            stopScan();
             bleManage.setTargetDeviceAddress(device.getAddress());
             bleManage.setTargetDeviceName(device.getName());
         }
@@ -211,7 +235,9 @@ public class BLEScan {
             return;
         }
         if (!bleManage.getRunning()) {
-            LogManager.Companion.e(TAG, "准备连接时任务已停止");
+            if (enableBleLog) {
+                LogManager.Companion.e(TAG, "准备连接时任务已停止");
+            }
             return;
         }
         bleConnect = new BLEConnect(device, bleManage);

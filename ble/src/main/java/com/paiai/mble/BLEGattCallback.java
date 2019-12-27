@@ -38,6 +38,17 @@ public class BLEGattCallback extends BluetoothGattCallback {
     private UUID uuidCharacteristicChange;
     private UUID uuidDescriptorWrite;
 
+    private OnMtuChangeListener onMtuChangeListener;
+
+    public interface OnMtuChangeListener {
+        void onChange(int mtu);
+    }
+
+    public BLEGattCallback withOnMtuChangeListener(OnMtuChangeListener onMtuChangeListener) {
+        this.onMtuChangeListener = onMtuChangeListener;
+        return this;
+    }
+
     public void registerOnGattConnectListener(BLEConnect.OnGattBLEConnectListener onGattBLEConnectListener) {
         this.onGattBLEConnectListener = onGattBLEConnectListener;
         this.onGattBLEFindServiceListener = null;
@@ -89,30 +100,44 @@ public class BLEGattCallback extends BluetoothGattCallback {
     @Override
     public void onConnectionStateChange(final BluetoothGatt gatt, int status, int newState) {
         lastBluetoothGatt = gatt;
-        LogManager.Companion.i(TAG, "onConnectionStateChange,gatt=" + gatt + ",status=" + status + ",newState=" + newState);
+        if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+            LogManager.Companion.i(TAG, "onConnectionStateChange,gatt=" + gatt + ",status=" + status + ",newState=" + newState);
+        }
         if(status == BluetoothGatt.GATT_SUCCESS){
             if(newState == BluetoothProfile.STATE_CONNECTING){
-                LogManager.Companion.i(TAG, "正在连接,gatt=" + gatt + ",status=" + status + ",newState=" + newState);
+                if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+                    LogManager.Companion.i(TAG, "正在连接,gatt=" + gatt + ",status=" + status + ",newState=" + newState);
+                }
             }else if(newState == BluetoothProfile.STATE_CONNECTED){
-                LogManager.Companion.i(TAG, "已连接,gatt=" + gatt + ",status=" + status + ",newState=" + newState);
+                if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+                    LogManager.Companion.i(TAG, "已连接,gatt=" + gatt + ",status=" + status + ",newState=" + newState);
+                }
                 if(onGattBLEConnectListener != null){
                     onGattBLEConnectListener.onConnectSuccss(gatt, status, newState, this);
                 }
             }else if(newState == BluetoothProfile.STATE_DISCONNECTING){
-                LogManager.Companion.i(TAG, "正在断开,gatt=" + gatt + ",status=" + status + ",newState=" + newState);
+                if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+                    LogManager.Companion.i(TAG, "正在断开,gatt=" + gatt + ",status=" + status + ",newState=" + newState);
+                }
             }else if(newState == BluetoothProfile.STATE_DISCONNECTED){
-                LogManager.Companion.i(TAG, "已断开,gatt=" + gatt + ",status=" + status + ",newState=" + newState);
+                if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+                    LogManager.Companion.i(TAG, "已断开,gatt=" + gatt + ",status=" + status + ",newState=" + newState);
+                }
                 handleError(BLEMsgCode.parseMessageCode(-10007), Log.INFO, gatt);
             }
         }else{
-            LogManager.Companion.e(TAG, "收到蓝牙底层协议栈异常消息,gatt=" + gatt + ",status=" + status + ",newState=" + newState);
+            if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+                LogManager.Companion.e(TAG, "收到蓝牙底层协议栈异常消息,gatt=" + gatt + ",status=" + status + ",newState=" + newState);
+            }
             handleError(BLEMsgCode.parseMessageCode(-10008), Log.ERROR, gatt);
         }
     }
 
     @Override
     public void onServicesDiscovered(final BluetoothGatt gatt, int status) {
-        LogManager.Companion.i(TAG, "onServicesDiscovered,gatt=" + gatt + ",status=" + status);
+        if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+            LogManager.Companion.i(TAG, "onServicesDiscovered,gatt=" + gatt + ",status=" + status);
+        }
         if(bleResponseManager.getBleManage().getRunning() && status == BluetoothGatt.GATT_SUCCESS){
             if(onGattBLEFindServiceListener != null){
                 onGattBLEFindServiceListener.onFindServiceSuccess(gatt, status, gatt.getServices());
@@ -130,8 +155,10 @@ public class BLEGattCallback extends BluetoothGattCallback {
 
     @Override
     public void onCharacteristicWrite(final BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-        LogManager.Companion.i(TAG, "onCharacteristicWrite\ngatt=" + gatt + "\ncharacteristic=" + characteristic + "\nstatus=" + status + "\nwritedData=" + ByteUtils.INSTANCE.parseBytesToHexStringDefault(characteristic.getValue())
-            + "\ncharacteristic.getUuid().toString()=" + characteristic.getUuid().toString() + "\nuuidCharacteristicWrite.toString()=" + uuidCharacteristicWrite.toString() + "\nonGattBLEWriteDataListener=" + onGattBLEWriteDataListener);
+        if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+            LogManager.Companion.i(TAG, "onCharacteristicWrite\ngatt=" + gatt + "\ncharacteristic=" + characteristic + "\nstatus=" + status + "\nwritedData=" + ByteUtils.INSTANCE.parseBytesToHexString(characteristic.getValue(), true, " ")
+                + "\ncharacteristic.getUuid().toString()=" + characteristic.getUuid().toString() + "\nuuidCharacteristicWrite.toString()=" + uuidCharacteristicWrite.toString() + "\nonGattBLEWriteDataListener=" + onGattBLEWriteDataListener);
+        }
         BLEManage.updateBluetoothGattLastCommunicationTime(gatt, System.currentTimeMillis());
         if(bleResponseManager.getBleManage().getRunning() && status == BluetoothGatt.GATT_SUCCESS && characteristic.getUuid().toString().equalsIgnoreCase(uuidCharacteristicWrite.toString())){
             if(onGattBLEWriteDataListener != null){
@@ -152,13 +179,17 @@ public class BLEGattCallback extends BluetoothGattCallback {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        LogManager.Companion.i(TAG, "onCharacteristicChanged\ngatt=" + gatt + "\ncharacteristic=" + characteristic + "\nreceivedData=" + ByteUtils.INSTANCE.parseBytesToHexStringDefault(characteristic.getValue())
-                + "\ncharacteristic.getUuid().toString()=" + characteristic.getUuid().toString() + "\nuuidCharacteristicWrite.toString()=" + uuidCharacteristicChange.toString()
-                + "\ncurrentThread=" + Thread.currentThread());
+        if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+            LogManager.Companion.i(TAG, "onCharacteristicChanged\ngatt=" + gatt + "\ncharacteristic=" + characteristic + "\nreceivedData=" + ByteUtils.INSTANCE.parseBytesToHexString(characteristic.getValue(), true, " ")
+                    + "\ncharacteristic.getUuid().toString()=" + characteristic.getUuid().toString() + "\nuuidCharacteristicWrite.toString()=" + uuidCharacteristicChange.toString()
+                    + "\ncurrentThread=" + Thread.currentThread());
+        }
         BLEManage.updateBluetoothGattLastCommunicationTime(gatt, System.currentTimeMillis());
         if(bleResponseManager.getBleManage().getRunning() && characteristic.getUuid().toString().equalsIgnoreCase(uuidCharacteristicChange.toString())){//接收到数据
             if(onBLEResponse == null){
-                LogManager.Companion.e(TAG, "received data, but onBLEResponse is null");
+                if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+                    LogManager.Companion.e(TAG, "received data, but onBLEResponse is null");
+                }
                 return;
             }
             bleResponseManager.receiveData(gatt, characteristic);
@@ -175,7 +206,9 @@ public class BLEGattCallback extends BluetoothGattCallback {
 
     @Override
     public void onDescriptorWrite(final BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-        LogManager.Companion.i(TAG, "onDescriptorWrite\ngatt=" + gatt + "\ndescriptor.getUuid().toString()=" + descriptor.getUuid().toString() + "\nuuidDescriptorWrite.toString()" + uuidDescriptorWrite.toString() + "\nstatus=" + status);
+        if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+            LogManager.Companion.i(TAG, "onDescriptorWrite\ngatt=" + gatt + "\ndescriptor.getUuid().toString()=" + descriptor.getUuid().toString() + "\nuuidDescriptorWrite.toString()" + uuidDescriptorWrite.toString() + "\nstatus=" + status);
+        }
         if(bleResponseManager.getBleManage().getRunning() && status == BluetoothGatt.GATT_SUCCESS && descriptor.getUuid().toString().equalsIgnoreCase(uuidDescriptorWrite.toString())){
             if(onGattBLEOpenNotificationListener != null){
                 onGattBLEOpenNotificationListener.onOpenNotificationSuccess(gatt, descriptor, status);
@@ -201,8 +234,14 @@ public class BLEGattCallback extends BluetoothGattCallback {
 
     @Override
     public void onMtuChanged(final BluetoothGatt gatt, int mtu, int status) {
+        if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+            LogManager.Companion.i(TAG, "协商的mtu=" + mtu);
+        }
         if (!bleResponseManager.getBleManage().getRunning()) {
             return;
+        }
+        if (onMtuChangeListener != null) {
+            onMtuChangeListener.onChange(mtu);
         }
         super.onMtuChanged(gatt, mtu, status);
     }
@@ -212,7 +251,9 @@ public class BLEGattCallback extends BluetoothGattCallback {
      */
     private synchronized void handleError(String errorMsg, int loglevel, BluetoothGatt gatt) {
         boolean running = bleResponseManager.getBleManage().getRunning();
-        LogManager.Companion.e(TAG, "handleError,running=" + running);
+        if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+            LogManager.Companion.e(TAG, "handleError,running=" + running);
+        }
         BLEManage.disconnect(gatt);
         if(running){
             onResponseError(errorMsg, loglevel, gatt);
@@ -232,7 +273,9 @@ public class BLEGattCallback extends BluetoothGattCallback {
         } else if(onGattBLEConnectListener != null){
             onGattBLEConnectListener.onConnectFail(errorMsg, loglevel, gatt);
         } else {
-            LogManager.Companion.e(TAG, "onResponseError, not found listener");
+            if (bleResponseManager.getBleManage().getEnableLogFlag()) {
+                LogManager.Companion.e(TAG, "onResponseError, not found listener");
+            }
         }
     }
 }

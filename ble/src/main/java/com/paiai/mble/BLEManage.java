@@ -57,15 +57,29 @@ public class BLEManage {
     private BLEGattCallback bleGattCallback;//连接状态回调管理器
     private boolean hasBLEFeature;//是否支持蓝牙ble功能
 
+    private boolean withoutNoResponse = false;
     private BLEScan.BLEFilter bleFilter;//扫描过滤器
     private String targetDeviceAddress;//目前设备地址
     private String targetDeviceName;//目标设备名称
     private List<String> targetDeviceAddressList;//目标设备地址列表
     private byte[] data;//发送的总数据包字节数组
+    private List<byte[]> dataList;//发送的总数据包字节数组列表
     private int timeoutScanBLE = BLEConfig.SCAN_TIMEOUT_INTERVAL;//扫描蓝牙默认超时时间
     private UUID[] serviceUUIDs;//设备的UUID,uuids=2 则不接受设备返回的数据, uuids=5 则接收设备返回的数据
     private Boolean disconnectOnFinish = false;//任务完成后是否关闭蓝牙
     private Object listenterObject;//响应对象
+    private boolean multiScan = true;//是否多次扫描
+
+    private boolean enableLogFlag = true;//是否启用蓝牙log
+
+    public boolean getEnableLogFlag() {
+        return enableLogFlag;
+    }
+
+    public BLEManage setEnableLogFlag(boolean enableLogFlag) {
+        this.enableLogFlag = enableLogFlag;
+        return this;
+    }
 
     public BLEManage() {
         bleResponseManager = new BLEResponseManager(this);
@@ -85,6 +99,7 @@ public class BLEManage {
             timeoutHandler.postDelayed(timeoutRunnable, BLEConfig.WHOLE_TASK_TIMEOUT_INTERVAL);
         }
         bleScan = new BLEScan(this);
+        bleScan.setMultiScan(multiScan);
         bleScan.startScan();
     }
 
@@ -178,6 +193,9 @@ public class BLEManage {
                 return false;
             }
             this.bleGattCallback = (BLEGattCallback) bluetoothGattMap.get("bluetoothGattCallback");
+            if (bleGattCallback == null) {
+                return false;
+            }
             this.bleGattCallback.setBLEResponseManager(bleResponseManager);
             LogManager.Companion.i(TAG, "从连接池中获取到连接\nbluetoothGatt=" + bluetoothGatt + "\naddress=" + bluetoothGatt.getDevice().getAddress());
             if (listenterObject instanceof BLEWriteData.OnBLEWriteDataListener || listenterObject instanceof OnBLEResponse) {//需要写数据或接收数据
@@ -185,6 +203,12 @@ public class BLEManage {
                     this.bleGattCallback.registerOnBLEResponse((OnBLEResponse) listenterObject);
                 }
                 bleWriteData = new BLEWriteData(this);
+                if (bluetoothGattMap.get("mtuSize") == null) {
+                    LogManager.Companion.i(TAG, "bluetoothGattMap.get(\"mtuSize\") == null");
+                    return false;
+                }
+                int mtuSize = (int) bluetoothGattMap.get("mtuSize");
+                setBleMaxBytesCount(mtuSize);
                 bleWriteData.writeData();
                 return true;
             } else if (listenterObject instanceof BLEOpenNotification.OnBLEOpenNotificationListener) {
@@ -296,7 +320,7 @@ public class BLEManage {
     /**
      * 获取一个Map连接对象，对象是一个Map复合对象，包含回调、连接、上一次通讯时间等
      */
-    private synchronized static Map<String, Object> getBluetoothGattMap(BluetoothGatt bluetoothGatt){
+    public synchronized static Map<String, Object> getBluetoothGattMap(BluetoothGatt bluetoothGatt){
         for (Map<String,Object> map: BLEManage.connectedBluetoothGattList) {
             if(map.get("bluetoothGatt") == bluetoothGatt){
                 return map;
@@ -591,12 +615,30 @@ public class BLEManage {
         return bluetoothGatt;
     }
 
+    public boolean getWithoutNoResponse() {
+        return withoutNoResponse;
+    }
+
+    public BLEManage setWithoutNoResponse(boolean withoutNoResponse) {
+        this.withoutNoResponse = withoutNoResponse;
+        return this;
+    }
+
     public void setData(byte[] data) {
         this.data = data;
     }
 
     public byte[] getData() {
         return data;
+    }
+
+    public List<byte[]> getDataList() {
+        return dataList;
+    }
+
+    public BLEManage setDataList(List<byte[]> dataList) {
+        this.dataList = dataList;
+        return this;
     }
 
     public BLEManage setBleWriteData(BLEWriteData bleWriteData) {
@@ -618,5 +660,18 @@ public class BLEManage {
 
     public boolean hasBLEFeature() {
         return hasBLEFeature;
+    }
+
+    public BLEManage setMultiScan(boolean multiScan) {
+        this.multiScan = multiScan;
+        return this;
+    }
+
+    public int getBleMaxBytesCount() {
+        return bleWriteData.getMaxBytesCount();
+    }
+
+    public void setBleMaxBytesCount(int mtuSize) {
+        bleWriteData.setMaxBytesCount(mtuSize);
     }
 }

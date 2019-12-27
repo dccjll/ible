@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -34,7 +35,7 @@ public class BLEConnect {
     private BluetoothDevice bluetoothDevice;//需要连接的蓝牙设备
     private String targetMacAddress;//远程蓝牙设备的mac地址
     private BLEManage bleManage;
-
+    private boolean enableBleLog = false;
     /**
      * 连接蓝牙服务器回调接口
      */
@@ -49,6 +50,7 @@ public class BLEConnect {
     public BLEConnect(BluetoothDevice bluetoothDevice, BLEManage bleManage) {
         this(bleManage);
         this.bluetoothDevice = bluetoothDevice;
+        enableBleLog = bleManage.getEnableLogFlag();
     }
 
     /**
@@ -78,8 +80,10 @@ public class BLEConnect {
      * 连接设备
      */
     public void connect(){
-        LogManager.Companion.i(TAG, "准备开始连接");
-        LogManager.Companion.i(TAG, "bluetoothDevice=" + bluetoothDevice + "\ntargetMacAddress=" + targetMacAddress);
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "准备开始连接");
+            LogManager.Companion.i(TAG, "bluetoothDevice=" + bluetoothDevice + "\ntargetMacAddress=" + targetMacAddress);
+        }
         BluetoothManager bluetoothManager = bleManage.getBluetoothManager();
         if (bluetoothManager == null) {
             bleManage.handleError(-10001);
@@ -88,6 +92,10 @@ public class BLEConnect {
         BluetoothAdapter bluetoothAdapter = bleManage.getBluetoothAdapter();
         if(bluetoothAdapter == null){
             bleManage.handleError(-10002);
+            return;
+        }
+        if (!AppUtils.Companion.getApp().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            bleManage.handleError(-10050);
             return;
         }
         if (!bluetoothAdapter.isEnabled()) {
@@ -104,19 +112,25 @@ public class BLEConnect {
         }
         List<BluetoothDevice> bluetoothDevices = bluetoothManager.getConnectedDevices(BluetoothProfile.GATT);
         if (bluetoothDevices != null && bluetoothDevices.size() > 0) {
-            LogManager.Companion.i(TAG, "有连接的设备列表=" + bluetoothDevices);
+            if (enableBleLog) {
+                LogManager.Companion.i(TAG, "有连接的设备列表=" + bluetoothDevices);
+            }
             if (bluetoothDevices.size() >= BLEConfig.MaxConnectDeviceNum) {
                 bleManage.handleError(-10020);
                 return;
             }
             for (BluetoothDevice bluetoothDevice : bluetoothDevices) {
                 if (BLEConnect.this.bluetoothDevice == bluetoothDevice) {
-                    LogManager.Companion.i(TAG, "根据设备对象匹配到已连接的设备,device=" + bluetoothDevice);
+                    if (enableBleLog) {
+                        LogManager.Companion.i(TAG, "根据设备对象匹配到已连接的设备,device=" + bluetoothDevice);
+                    }
                     onConnectDeivceSuccss(BLEManage.getBluetoothGatt(bluetoothDevice.getAddress()), BluetoothGatt.GATT_SUCCESS, BluetoothProfile.STATE_CONNECTED);
                     return;
                 }
                 if (bluetoothDevice.getAddress().equalsIgnoreCase(bleManage.getTargetDeviceAddress())) {
-                    LogManager.Companion.i(TAG, "根据mac地址匹配到已连接的设备,mac=" + bluetoothDevice.getAddress());
+                    if (enableBleLog) {
+                        LogManager.Companion.i(TAG, "根据mac地址匹配到已连接的设备,mac=" + bluetoothDevice.getAddress());
+                    }
                     onConnectDeivceSuccss(BLEManage.getBluetoothGatt(bleManage.getTargetDeviceAddress()), BluetoothGatt.GATT_SUCCESS, BluetoothProfile.STATE_CONNECTED);
                     return;
                 }
@@ -131,16 +145,22 @@ public class BLEConnect {
 
                     @Override
                     public void onConnectFail(String errorMsg, int loglevel, BluetoothGatt bluetoothGatt) {
-                        LogManager.Companion.i(TAG, "第" + currentConnectCount + "次连接失败\nerrorMsg=" + errorMsg);
+                        if (enableBleLog) {
+                            LogManager.Companion.i(TAG, "第" + currentConnectCount + "次连接失败\nerrorMsg=" + errorMsg);
+                        }
                         connect();
                     }
                 }
         );
         if (!bleManage.getRunning()) {
-            LogManager.Companion.i(TAG, "任务已停止");
+            if (enableBleLog) {
+                LogManager.Companion.i(TAG, "任务已停止");
+            }
             return;
         }
-        LogManager.Companion.i(TAG, "第" + currentConnectCount + "次开始连接");
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "第" + currentConnectCount + "次开始连接");
+        }
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
@@ -156,11 +176,15 @@ public class BLEConnect {
                 }
                 BluetoothGatt bluetoothGatt = bluetoothDevice.connectGatt(AppUtils.Companion.getApp(), false, bleManage.getBleGattCallback());
                 if (bluetoothGatt == null) {
-                    LogManager.Companion.e(TAG, "连接失败");
+                    if (enableBleLog) {
+                        LogManager.Companion.e(TAG, "连接失败");
+                    }
                     connect();
                     return;
                 }
-                LogManager.Companion.i(TAG, "请求连接成功,gatt=" + bluetoothGatt);
+                if (enableBleLog) {
+                    LogManager.Companion.i(TAG, "请求连接成功,gatt=" + bluetoothGatt);
+                }
             }
         });
     }
@@ -170,11 +194,15 @@ public class BLEConnect {
      */
     private void onConnectDeivceSuccss(BluetoothGatt bluetoothGatt, int status, int newState) {
         if (bluetoothGatt == null) {
-            LogManager.Companion.e(TAG, "在连接成功的回调里，bluetoothGatt对象验证失败，bluetoothGatt=null");
+            if (enableBleLog) {
+                LogManager.Companion.e(TAG, "在连接成功的回调里，bluetoothGatt对象验证失败，bluetoothGatt=null");
+            }
             bleManage.handleError(-10051);
             return;
         }
-        LogManager.Companion.i(TAG, "已连接成功");
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "已连接成功");
+        }
         bleManage.setBluetoothGatt(bluetoothGatt);
         if (BLEManage.getBluetoothGatt(bluetoothGatt.getDevice().getAddress()) == null && BLEManage.getBluetoothGatt(bluetoothGatt.getDevice().getName()) == null) {
             Map<String, Object> bluetoothGattMap = new HashMap<>();
@@ -188,11 +216,15 @@ public class BLEConnect {
             return;
         }
         if (BLEConfig.START_FIND_SERVICE_INTERVAL > 0) {
-            LogManager.Companion.i(TAG, "休眠" + BLEConfig.START_FIND_SERVICE_INTERVAL + "ms开始找服务，手机型号:" + Build.MODEL);
+            if (enableBleLog) {
+                LogManager.Companion.i(TAG, "休眠" + BLEConfig.START_FIND_SERVICE_INTERVAL + "ms开始找服务，手机型号:" + Build.MODEL);
+            }
             SystemClock.sleep(BLEConfig.START_FIND_SERVICE_INTERVAL);
         }
         if (!bleManage.getRunning()) {
-            LogManager.Companion.e(TAG, "准备找服务时任务已停止");
+            if (enableBleLog) {
+                LogManager.Companion.e(TAG, "准备找服务时任务已停止");
+            }
             return;
         }
         bleManage.setBleConnect(this);

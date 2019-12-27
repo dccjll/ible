@@ -23,7 +23,7 @@ public class BLEConfig {
     public static int MAX_CONNECT_COUNT = 5;
 
     //连接上设备后开始找服务的时间间隔
-    public static int START_FIND_SERVICE_INTERVAL = 10;
+    public static int START_FIND_SERVICE_INTERVAL = 20;
     //找服务成功后开始打开通知的时间间隔
     public static int START_OPEN_NOTIFICATION_INTERVAL = 0;
 
@@ -33,7 +33,7 @@ public class BLEConfig {
     public static int AUTO_DISCONNECT_INTERVAL_WHEN_NO_DATA_INTERACTION = 2 * 60 * 1000;
 
     //整个任务的超时时间
-    public static int WHOLE_TASK_TIMEOUT_INTERVAL = 10 * 1000;
+    public static int WHOLE_TASK_TIMEOUT_INTERVAL = 20 * 1000;
     //任务完成后执行断开的时间间隔，任务完成后断开标识(BLEResponseManager中的disconnectOnFinish)为true时有效
     public static int START_DISCONNECT_INTERVAL_WHEN_FINISH = 2 * 1000;
 
@@ -60,7 +60,7 @@ public class BLEConfig {
      * 恢复整个任务的超时时间
      */
     public static void resumeWholeTaskTimeoutInterval() {
-        WHOLE_TASK_TIMEOUT_INTERVAL = 10 * 1000;
+        WHOLE_TASK_TIMEOUT_INTERVAL = 20 * 1000;
     }
 
     /**

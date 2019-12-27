@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -13,6 +14,7 @@ import com.paiai.mble.BLEGattCallback;
 import com.paiai.mble.BLEManage;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -26,6 +28,11 @@ public class BLEOpenNotification {
     private List<BluetoothGattService> bluetoothGattServices;
     private UUID[] uuids;
     private BLEManage bleManage;
+    private boolean enableBleLog = false;
+
+    private BluetoothGatt gatt;
+    private BluetoothGattDescriptor descriptor;
+    private int status;
 
     /**
      * gatt服务器打开通知监听器
@@ -42,13 +49,16 @@ public class BLEOpenNotification {
         this.bluetoothGattServices = bleManage.getBluetoothGatt().getServices();
         this.uuids = bleManage.getNotificationuuids();
         this.bleManage = bleManage;
+        enableBleLog = bleManage.getEnableLogFlag();
     }
 
     /**
      * 开始打开通知
      */
     public void openNotification(){
-        LogManager.Companion.i(TAG, "准备开始打开通知");
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "准备开始打开通知");
+        }
         if(bleManage.getBluetoothGatt() == null){
             bleManage.handleError(-10021);
             return;
@@ -76,12 +86,39 @@ public class BLEOpenNotification {
 
                     @Override
                     public void onOpenNotificationFail(String errorMsg, int loglevel) {
-                        LogManager.Companion.i(TAG, "打开通知失败\nerrorMsg=" + errorMsg);
+                        if (enableBleLog) {
+                            LogManager.Companion.i(TAG, "打开通知失败\nerrorMsg=" + errorMsg);
+                        }
                         bleManage.getBleConnect().connect();
                     }
                 }
         );
-        LogManager.Companion.i(TAG, "开始打开通知");
+        bleManage.getBleGattCallback().withOnMtuChangeListener(mtu -> {
+            int maxBytesCount = mtu - 3;
+            if(bleManage.getListenterObject() instanceof OnBLEOpenNotificationListener){
+                ((OnBLEOpenNotificationListener)bleManage.getListenterObject()).onOpenNotificationSuccess(gatt, descriptor, status, bleManage.getBleGattCallback());
+                return;
+            }
+            if (enableBleLog) {
+                LogManager.Companion.i(TAG, "要写入的数据：" + ByteUtils.INSTANCE.parseBytesToHexString(bleManage.getData(), true, " "));
+            }
+            if (!bleManage.getRunning()) {
+                if (enableBleLog) {
+                    LogManager.Companion.e(TAG, "准备写入数据时任务已停止");
+                }
+                return;
+            }
+            Map<String, Object> bluetoothGattMap = BLEManage.getBluetoothGattMap(bleManage.getBluetoothGatt());
+            if (bluetoothGattMap != null) {
+                bluetoothGattMap.put("mtuSize", maxBytesCount);
+            }
+            BLEWriteData bleWriteData = new BLEWriteData(bleManage);
+            bleWriteData.setMaxBytesCount(maxBytesCount);
+            bleWriteData.writeData();
+        });
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "开始打开通知");
+        }
         BluetoothGattService bluetoothGattService = null;
         for(BluetoothGattService bluetoothGattService_ : bluetoothGattServices){
             if(bluetoothGattService_.getUuid().toString().equalsIgnoreCase(uuids[0].toString())){
@@ -98,7 +135,9 @@ public class BLEOpenNotification {
             bleManage.handleError(-10026);
             return;
         }
-        LogManager.Companion.i(TAG, "通知的特征属性：" + bluetoothGattCharacteristic.getProperties() + ",need：" + BluetoothGattCharacteristic.PROPERTY_NOTIFY);
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "通知的特征属性：" + bluetoothGattCharacteristic.getProperties() + ",need：" + BluetoothGattCharacteristic.PROPERTY_NOTIFY);
+        }
         if ((bluetoothGattCharacteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_NOTIFY) == 0) {
             bleManage.handleError(-10027);
             return;
@@ -109,7 +148,9 @@ public class BLEOpenNotification {
             return;
         }
         if (!bleManage.getRunning()) {
-            LogManager.Companion.i(TAG, "任务已停止");
+            if (enableBleLog) {
+                LogManager.Companion.i(TAG, "任务已停止");
+            }
             return;
         }
         new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -131,14 +172,27 @@ public class BLEOpenNotification {
     }
 
     private void afterOpenNotificationSuccess(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-        LogManager.Companion.i(TAG, "打开通知成功");
+        this.gatt = gatt;
+        this.descriptor = descriptor;
+        this.status = status;
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "打开通知成功");
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            gatt.requestMtu(512);
+            return;
+        }
         if(bleManage.getListenterObject() instanceof OnBLEOpenNotificationListener){
             ((OnBLEOpenNotificationListener)bleManage.getListenterObject()).onOpenNotificationSuccess(gatt, descriptor, status, bleManage.getBleGattCallback());
             return;
         }
-        LogManager.Companion.i(TAG, "要写入的数据：" + ByteUtils.INSTANCE.parseBytesToHexStringDefault(bleManage.getData()));
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "要写入的数据：" + ByteUtils.INSTANCE.parseBytesToHexString(bleManage.getData(), true, " "));
+        }
         if (!bleManage.getRunning()) {
-            LogManager.Companion.e(TAG, "准备写入数据时任务已停止");
+            if (enableBleLog) {
+                LogManager.Companion.e(TAG, "准备写入数据时任务已停止");
+            }
             return;
         }
         BLEWriteData bleWriteData = new BLEWriteData(bleManage);

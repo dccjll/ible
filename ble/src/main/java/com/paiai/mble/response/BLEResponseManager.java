@@ -126,7 +126,9 @@ public class BLEResponseManager {
             @Override
             public void run() {
                 if (bleManage != null && bleManage.getListenterObject() instanceof BLEWriteData.OnBLEWriteDataListener) {
-                    setTaskFinishFlag(true);
+                    if (bleManage.getBleWriteData().getDividePackage()) {
+                        setTaskFinishFlag(true);
+                    }
                     ((BLEWriteData.OnBLEWriteDataListener)bleManage.getListenterObject()).onWriteDataFinish();
                 }
             }

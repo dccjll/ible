@@ -33,6 +33,7 @@ public class ScanDeviceActivity extends Activity {
             longScanFlag = intent.getBooleanExtra("longScanFlag", false);
             bleDeviceType = intent.getIntExtra("bleDeviceType", 0);
             deviceNameStartWith = intent.getStringExtra("deviceNameStartWith");
+
         }
         /*BLEHelper.requestLocationPermissionAndFeature(new BLEHelper.OnLocationPermissionAndFeatureCheckListener() {
             @Override
@@ -43,7 +44,7 @@ public class ScanDeviceActivity extends Activity {
 
             @Override
             public void onFail(int errorCode) {
-                Toast.makeText(Utils.getApp(), "need location permission and feature", Toast.LENGTH_LONG).show();
+                ToastUtils.INSTANCE.showLong("need location permission and feature");
             }
 
             @Override

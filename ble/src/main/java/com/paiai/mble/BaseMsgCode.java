@@ -15,7 +15,7 @@ public class BaseMsgCode {
 
     public static final SparseArray<String> codeMap = new SparseArray<>();
 
-    static {
+    public static void init() {
         String[] lockMsgCodeArr = AppUtils.Companion.getApp().getResources().getStringArray(R.array.base_baseMsgCode);
         try {
             for (String lockMsgCode : lockMsgCodeArr) {

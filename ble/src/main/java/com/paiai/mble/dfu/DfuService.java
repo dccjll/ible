@@ -23,6 +23,12 @@
 package com.paiai.mble.dfu;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.graphics.Color;
+import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
 
 import no.nordicsemi.android.dfu.DfuBaseService;
 
@@ -44,5 +50,33 @@ public class DfuService extends DfuBaseService {
 		 * history (see NotificationActivity).
 		 */
 		return NotificationActivity.class;
+	}
+
+	@Override
+	public void onCreate() {
+		try {
+			super.onCreate();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	protected void updateForegroundNotification(@NonNull NotificationCompat.Builder builder) {
+		/*
+		 * 解决Android 8.0上出现 android.app.RemoteServiceException: Bad notification for startForeground 的崩溃
+		 */
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+			NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_DFU,
+				"使用Dfu进行固件升级", NotificationManager.IMPORTANCE_HIGH);
+			notificationChannel.enableLights(true);
+			notificationChannel.setLightColor(Color.RED);
+			notificationChannel.setShowBadge(true);
+			notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+			NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+			if (notificationManager != null) {
+				notificationManager.createNotificationChannel(notificationChannel);
+			}
+		}
 	}
 }

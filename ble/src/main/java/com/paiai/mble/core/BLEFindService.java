@@ -26,6 +26,7 @@ public class BLEFindService {
 
     private final static String TAG = BLEFindService.class.getSimpleName();
     private BLEManage bleManage;
+    private boolean enableBleLog = false;
 
     /**
      * gatt服务器找服务监听器
@@ -40,13 +41,16 @@ public class BLEFindService {
      */
     public BLEFindService(BLEManage bleManage) {
         this.bleManage = bleManage;
+        enableBleLog = bleManage.getEnableLogFlag();
     }
 
     /**
      * 开始找服务
      */
     public void findService(){
-        LogManager.Companion.i(TAG, "准备开始找服务");
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "准备开始找服务");
+        }
         if(bleManage.getBluetoothGatt() == null){
             bleManage.handleError(-10021);
             return;
@@ -69,16 +73,22 @@ public class BLEFindService {
 
                     @Override
                     public void onFindServiceFail(String errorMsg, int loglevel) {
-                        LogManager.Companion.i(TAG, "找服务失败\nerrorMsg=" + errorMsg);
+                        if (enableBleLog) {
+                            LogManager.Companion.i(TAG, "找服务失败\nerrorMsg=" + errorMsg);
+                        }
                         bleManage.getBleConnect().connect();
                     }
                 }
         );
         if (!bleManage.getRunning()) {
-            LogManager.Companion.i(TAG, "任务已停止");
+            if (enableBleLog) {
+                LogManager.Companion.i(TAG, "任务已停止");
+            }
             return;
         }
-        LogManager.Companion.i(TAG, "开始找服务");
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "开始找服务");
+        }
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
@@ -90,19 +100,25 @@ public class BLEFindService {
     }
 
     private void afterFindServiceSuccess(BluetoothGatt bluetoothGatt, int status, List<BluetoothGattService> bluetoothGattServices) {
-        LogManager.Companion.i(TAG, "已找到服务");
+        if (enableBleLog) {
+            LogManager.Companion.i(TAG, "已找到服务");
+        }
         if (bluetoothGattServices == null || bluetoothGattServices.size() == 0) {
-            LogManager.Companion.e(TAG, "服务列表为空");
+            if (enableBleLog) {
+                LogManager.Companion.e(TAG, "服务列表为空");
+            }
             bleManage.getBleConnect().connect();
             return;
         }
         //遍历服务
-        for(BluetoothGattService bluetoothGattService : bluetoothGattServices){
-            LogManager.Companion.i(TAG, "++++service uuid:" + bluetoothGattService.getUuid());
-            for(BluetoothGattCharacteristic bluetoothGattCharacteristic : bluetoothGattService.getCharacteristics()){
-                LogManager.Companion.i(TAG, "--------characteristics uuid:" + bluetoothGattCharacteristic.getUuid());
-                for(BluetoothGattDescriptor bluetoothGattDescriptor : bluetoothGattCharacteristic.getDescriptors()){
-                    LogManager.Companion.i(TAG, "------------descriptor uuid:" + bluetoothGattDescriptor.getUuid());
+        if (enableBleLog) {
+            for(BluetoothGattService bluetoothGattService : bluetoothGattServices){
+                LogManager.Companion.i(TAG, "++++service uuid:" + bluetoothGattService.getUuid());
+                for(BluetoothGattCharacteristic bluetoothGattCharacteristic : bluetoothGattService.getCharacteristics()){
+                    LogManager.Companion.i(TAG, "--------characteristics uuid:" + bluetoothGattCharacteristic.getUuid());
+                    for(BluetoothGattDescriptor bluetoothGattDescriptor : bluetoothGattCharacteristic.getDescriptors()){
+                        LogManager.Companion.i(TAG, "------------descriptor uuid:" + bluetoothGattDescriptor.getUuid());
+                    }
                 }
             }
         }
@@ -112,10 +128,14 @@ public class BLEFindService {
         }
         if(bleManage.getNeedOpenNotification()){
             if (BLEConfig.START_OPEN_NOTIFICATION_INTERVAL > 0) {
-                LogManager.Companion.i(TAG, "找服务成功,休眠" + BLEConfig.START_OPEN_NOTIFICATION_INTERVAL + "ms开始打开通知,当前手机型号:" + Build.MODEL);
+                if (enableBleLog) {
+                    LogManager.Companion.i(TAG, "找服务成功,休眠" + BLEConfig.START_OPEN_NOTIFICATION_INTERVAL + "ms开始打开通知,当前手机型号:" + Build.MODEL);
+                }
                 SystemClock.sleep(BLEConfig.START_OPEN_NOTIFICATION_INTERVAL);
                 if (!bleManage.getRunning()) {
-                    LogManager.Companion.e(TAG, "准备打开通知时任务已停止");
+                    if (enableBleLog) {
+                        LogManager.Companion.e(TAG, "准备打开通知时任务已停止");
+                    }
                     return;
                 }
             }

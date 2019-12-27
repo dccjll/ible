@@ -8,7 +8,6 @@ import android.webkit.MimeTypeMap;
 
 import com.dcc.ibase.log.LogManager;
 import com.dcc.ibase.utils.AppUtils;
-import com.dcc.ibase.utils.FileUtils;
 import com.dcc.ibase.utils.RegexUtils;
 import com.paiai.mble.BLEManage;
 import com.paiai.mble.BLEMsgCode;
@@ -52,7 +51,7 @@ public class DeviceFirewareUpdate {
                     return;
                 }
                 LogManager.Companion.i(TAG, "找到新地址，表示设备已经进入了更新模式，直接启动dfu更新");
-//                bleManage.stopScan();
+//               bleManage.stopScan();
                 postDataToBLEDevice(bluetoothDevice);
                 startDFU = true;
             }else if(bluetoothDevice.getAddress().equalsIgnoreCase(deviceMac)){//找到长地址
@@ -62,7 +61,7 @@ public class DeviceFirewareUpdate {
                     return;
                 }
                 LogManager.Companion.i(TAG, "找到原始地址，发送进入固件更新模式指令");
-//                bleManage.stopScan();
+//               bleManage.stopScan();
                 if (onSimpleDfuProgressListener != null) {
                     onSimpleDfuProgressListener.inputFirewareUpdateMode(bluetoothDevice.getAddress(), onInputFirewareUpdateModeListener);
                     sendDFUCmd = true;
@@ -145,9 +144,9 @@ public class DeviceFirewareUpdate {
         public void onDfuCompleted(String deviceAddress) {
             updateFinished = true;
             LogManager.Companion.i(TAG, "设备上更新固件成功");
-            if (new File(firewareAddress).exists()) {
+            /*if (new File(firewareAddress).exists()) {
                 FileUtils.INSTANCE.deleteFile(firewareAddress);
-            }
+            }*/
             DfuServiceListenerHelper.unregisterProgressListener(AppUtils.Companion.getApp(), dfuProgressListener);
             if (onSimpleDfuProgressListener != null) {
                 onSimpleDfuProgressListener.onDfuCompleted(deviceAddress);
@@ -263,7 +262,7 @@ public class DeviceFirewareUpdate {
             handleError(deviceMac, -10000);
             return;
         }
-//        bleManage.setTargetDeviceAddress(deviceMac);
+//       bleManage.setTargetDeviceAddress(deviceMac);
         bleManage.setListenterObject(onBLEScanListener);
         if (firewareAddress.toLowerCase(Locale.getDefault()).startsWith("http:") || firewareAddress.toLowerCase(Locale.getDefault()).startsWith("https")) {//暂不支持网络地址的固件升级
             handleError(deviceMac, -10048);
@@ -276,7 +275,7 @@ public class DeviceFirewareUpdate {
             return;
         }
         LogManager.Companion.i(TAG, "固件地址指向一个本地地址，文件存在");
-        final String extension = "(?i)ZIP"; // (?i) = case insensitive
+        final String extension = "(?i)ZIP"; //(?i) = case insensitive
         final boolean statusOk = MimeTypeMap.getFileExtensionFromUrl(firewareAddress).matches(extension);
         if (!statusOk) {
             LogManager.Companion.e(TAG, "文件格式检测失败");
@@ -284,41 +283,41 @@ public class DeviceFirewareUpdate {
             return;
         }
         initDFU();
-//        //是网络地址
-//        String filePath = BLESDKLibrary.context.getFilesDir().getLogFileRelativePath() + "data/" + BLESDKLibrary.context.getPackageName() + "/files/";
-//        String fileName = firewareAddress.substring(firewareAddress.lastIndexOf("/") + 1);
-//        ServerUtil.downloadFile(firewareAddress, filePath, fileName, new NoHttpUtil.DownloadResponseListener() {
-//            @Override
-//            public void onProgress(int progress) {
-//                LogManager.i(TAG, "下载进度：" + progress);
-//            }
+//       //是网络地址
+//       String filePath = BLESDKLibrary.context.getFilesDir().getLogFileRelativePath() + "data/" + BLESDKLibrary.context.getPackageName() + "/files/";
+//       String fileName = firewareAddress.substring(firewareAddress.lastIndexOf("/") + 1);
+//       ServerUtil.downloadFile(firewareAddress, filePath, fileName, new NoHttpUtil.DownloadResponseListener() {
+//           @Override
+//           public void onProgress(int progress) {
+//               LogManager.i(TAG, "下载进度：" + progress);
+//           }
 //
-//            @Override
-//            public void onSuccess(String filePath) {
-//                firewareAddress = filePath;
-//                LogManager.i(TAG, "文件下载成功，路径为：" + firewareAddress);
-//                if (!new File(firewareAddress).exists()) {
-//                    LogManager.e(TAG, "固件地址指向一个内部地址，但是该地址不存在任何文件");
-//                    handleError(deviceMac, -10047);
-//                    return;
-//                }
-//                LogManager.i(TAG, "固件地址指向一个内部地址，文件存在");
-//                final String extension = "(?i)ZIP"; // (?i) = case insensitive
-//                final boolean statusOk = MimeTypeMap.getFileExtensionFromUrl(firewareAddress).matches(extension);
-//                if (!statusOk) {
-//                    LogManager.e(TAG, "文件格式检测失败");
-//                    handleError(deviceMac, -10011);
-//                    return;
-//                }
-//                initDFU();
-//            }
+//           @Override
+//           public void onSuccess(String filePath) {
+//               firewareAddress = filePath;
+//               LogManager.i(TAG, "文件下载成功，路径为：" + firewareAddress);
+//               if (!new File(firewareAddress).exists()) {
+//                   LogManager.e(TAG, "固件地址指向一个内部地址，但是该地址不存在任何文件");
+//                   handleError(deviceMac, -10047);
+//                   return;
+//               }
+//               LogManager.i(TAG, "固件地址指向一个内部地址，文件存在");
+//               final String extension = "(?i)ZIP"; //(?i) = case insensitive
+//               final boolean statusOk = MimeTypeMap.getFileExtensionFromUrl(firewareAddress).matches(extension);
+//               if (!statusOk) {
+//                   LogManager.e(TAG, "文件格式检测失败");
+//                   handleError(deviceMac, -10011);
+//                   return;
+//               }
+//               initDFU();
+//           }
 //
-//            @Override
-//            public void onFailure(Integer integer) {
-//                LogManager.e(TAG, BLEMsgCode.parseMessageCode(integer));
-//                handleError(deviceMac, integer);
-//            }
-//        });
+//           @Override
+//           public void onFailure(Integer integer) {
+//               LogManager.e(TAG, BLEMsgCode.parseMessageCode(integer));
+//               handleError(deviceMac, integer);
+//           }
+//       });
     }
 
     /**
@@ -382,31 +381,29 @@ public class DeviceFirewareUpdate {
     private void postDataToBLEDevice(BluetoothDevice device) {
         updateFinished = false;
 
-        // final Intent service = new Intent(contentActivity, DfuService.class);
+        //final Intent service = new Intent(contentActivity, DfuService.class);
         //
-        // service.putExtra(DfuService.EXTRA_DEVICE_ADDRESS,
-        // device.getAddress());
-        // service.putExtra(DfuService.EXTRA_DEVICE_NAME, device.getName());
-        // service.putExtra(DfuService.EXTRA_FILE_MIME_TYPE,
-        // DfuService.MIME_TYPE_ZIP);
-        // service.putExtra(DfuService.EXTRA_FILE_TYPE, DfuService.TYPE_AUTO);
-        // service.putExtra(DfuService.EXTRA_FILE_PATH, filePathWithName); // a
-        // logFileRelativePath or URI must be provided.
-        // // service.putExtra(DfuService.EXTRA_FILE_URI, "");
-        // // Init packet is required by Bootloader/DFU from SDK 7.0+ if HEX or
-        // BIN file is given above.
-        // // In case of a ZIP file, the init packet (a DAT file) must be
-        // included inside the ZIP file.
-        // // service.putExtra(DfuService.EXTRA_INIT_FILE_PATH, "");
-        // // service.putExtra(DfuService.EXTRA_INIT_FILE_URI, "");
-        // service.putExtra(DfuService.EXTRA_KEEP_BOND, false);
+        //service.putExtra(DfuService.EXTRA_DEVICE_ADDRESS,
+        //device.getAddress());
+        //service.putExtra(DfuService.EXTRA_DEVICE_NAME, device.getName());
+        //service.putExtra(DfuService.EXTRA_FILE_MIME_TYPE,
+        //DfuService.MIME_TYPE_ZIP);
+        //service.putExtra(DfuService.EXTRA_FILE_TYPE, DfuService.TYPE_AUTO);
+        //service.putExtra(DfuService.EXTRA_FILE_PATH, filePathWithName); //a
+        //logFileRelativePath or URI must be provided.
+        ////service.putExtra(DfuService.EXTRA_FILE_URI, "");
+        ////Init packet is required by Bootloader/DFU from SDK 7.0+ if HEX or
+        //BIN file is given above.
+        ////In case of a ZIP file, the init packet (a DAT file) must be
+        //included inside the ZIP file.
+        ////service.putExtra(DfuService.EXTRA_INIT_FILE_PATH, "");
+        ////service.putExtra(DfuService.EXTRA_INIT_FILE_URI, "");
+        //service.putExtra(DfuService.EXTRA_KEEP_BOND, false);
         //
-        // contentActivity.startService(service);
+        //contentActivity.startService(service);
 
         final DfuServiceInitiator starter = new DfuServiceInitiator(device.getAddress()).setDeviceName(device.getName()).setKeepBond(false);
         starter.setZip(null, firewareAddress);
-        starter.setDisableNotification(true);
-        starter.setForeground(false);
         starter.start(AppUtils.Companion.getApp(), DfuService.class);
         LogManager.Companion.i(TAG, "starter started!");
 
@@ -417,9 +414,9 @@ public class DeviceFirewareUpdate {
      */
     private  void handleError(final String deviceMac, final int errorCode) {
         LogManager.Companion.e(TAG, BLEMsgCode.parseMessageCode(errorCode));
-//        if (new File(firewareAddress).exists()) {
-//            FileUtils.INSTANCE.deleteFile(firewareAddress);
-//        }
+//       if (new File(firewareAddress).exists()) {
+//           FileUtils.INSTANCE.deleteFile(firewareAddress);
+//       }
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
