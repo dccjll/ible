@@ -8,12 +8,20 @@
 #---------------------------------4.反射相关的类和方法-----------------------
 
 #---------------------------------5.提供给外部的接口----------------------------------------
--keep class com.bluetoothle.base.** { *; }
--keep class com.paiai.ble.listener.** { *; }
--keep class com.paiai.ble.BLEManage { *; }
--keep class com.bluetoothle.dfu.listener.** { *; }
--keep class com.bluetoothle.dfu.manage.** { *; }
--keep class com.paiai.ble.util.** { *; }
+-keep class com.paiai.mble.** { *; }
+
+-assumenosideeffects class android.util.Log {
+    public static boolean isLoggable(java.lang.String,int);
+    public static int v(...);
+    public static int i(...);
+    public static int w(...);
+    public static int d(...);
+   public static int e(...);
+}
+-assumenosideeffects class java.io.PrintStream {
+    public *** println(...);
+    public *** print(...);
+}
 
 #-------------------------------------------基本不用动区域--------------------------------------------
 #---------------------------------基本指令区----------------------------------
